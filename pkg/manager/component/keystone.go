@@ -76,6 +76,7 @@ func (m *keystoneManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1alph
 	opt.ResetAdminUserPassword = true
 	opt.AdminPort = constants.KeystoneAdminPort
 	opt.Port = constants.KeystonePublicPort
+	opt.EnableSsl = !oc.Spec.Keystone.DisableTLS
 
 	return m.newServiceConfigMap(v1alpha1.KeystoneComponentType, "", oc, opt), false, nil
 }

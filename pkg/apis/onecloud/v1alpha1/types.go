@@ -539,6 +539,7 @@ type DeploymentServiceSpec struct {
 type KeystoneSpec struct {
 	DeploymentServiceSpec
 	BootstrapPassword string `json:"bootstrapPassword"`
+	DisableTLS        bool   `json:"disableTLS"`
 }
 
 type GlanceSpec struct {
