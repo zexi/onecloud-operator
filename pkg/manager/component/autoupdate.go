@@ -67,7 +67,7 @@ func (m *autoUpdateManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1al
 		return nil, false, err
 	}
 	config := cfg.AutoUpdate
-	SetOptionsServiceTLS(&opt.BaseOptions)
+	SetOptionsServiceTLS(&opt.BaseOptions, oc.Spec.DisableServiceTLS)
 	SetServiceCommonOptions(&opt.CommonOptions, oc, config)
 
 	opt.UpdateServer = "https://iso.yunion.cn"

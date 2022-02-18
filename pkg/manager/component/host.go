@@ -42,7 +42,7 @@ func (m *hostManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1alpha1.O
 		return nil, false, err
 	}
 	config := cfg.HostAgent
-	SetOptionsServiceTLS(&commonOpt.BaseOptions)
+	SetOptionsServiceTLS(&commonOpt.BaseOptions, oc.Spec.DisableServiceTLS)
 	SetServiceCommonOptions(&commonOpt.CommonOptions, oc, config.ServiceCommonOptions)
 	commonOpt.Port = constants.HostPort
 

@@ -170,6 +170,8 @@ type OnecloudClusterList struct {
 type OnecloudClusterSpec struct {
 	// DisableResourceManagement disable container cgroup resource limits and requests
 	DisableResourceManagement bool `json:"disableResourceMangement"`
+	// DisableServiceTLS disable all service http server tls listen
+	DisableServiceTLS bool `json:"disableServiceTLS"`
 	// Etcd holds configuration for etcd
 	Etcd Etcd `json:"etcd,omitempty"`
 	// Mysql holds configuration for mysql
@@ -528,6 +530,10 @@ type ZoneStatefulDeploymentSpec struct {
 	// Zones specified which zones want deploy,
 	// if it is empty, will deploy at all of zones
 	Zones []string `json:"zones,omitempty"`
+}
+
+type DeploymentServiceSpec struct {
+	DeploymentSpec
 }
 
 // KeystoneSpec contains details of keystone service

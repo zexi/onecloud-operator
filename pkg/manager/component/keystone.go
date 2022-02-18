@@ -68,7 +68,7 @@ func (m *keystoneManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1alph
 	}
 	config := cfg.Keystone
 	SetDBOptions(&opt.DBOptions, oc.Spec.Mysql, config.DB)
-	SetOptionsServiceTLS(&opt.BaseOptions)
+	SetOptionsServiceTLS(&opt.BaseOptions, oc.Spec.DisableServiceTLS)
 	SetServiceBaseOptions(&opt.BaseOptions, oc.GetRegion(), config.ServiceBaseConfig)
 
 	opt.BootstrapAdminUserPassword = oc.Spec.Keystone.BootstrapPassword

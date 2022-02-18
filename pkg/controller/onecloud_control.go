@@ -431,7 +431,7 @@ func (c keystoneComponent) SystemInit(oc *v1alpha1.OnecloudCluster) error {
 			oc.Status.RegionServer.RegionId = regionId
 		}
 		if err := c.doRegisterIdentity(s, region, oc.Spec.LoadBalancerEndpoint, KeystoneComponentName(oc.GetName()),
-			constants.KeystoneAdminPort, constants.KeystonePublicPort, true); err != nil {
+			constants.KeystoneAdminPort, constants.KeystonePublicPort, !oc.Spec.DisableServiceTLS); err != nil {
 			return errors.Wrap(err, "register identity endpoint")
 		}
 		return nil
@@ -630,7 +630,7 @@ func (c *keystoneComponent) doRegisterIdentity(
 		newEndpointByInterfaceType(publicAddress, adminPort, "v3", constants.EndpointTypeAdmin),
 	)
 
-	return c.registerServiceEndpointsBySession(s, constants.ServiceNameKeystone, constants.ServiceTypeIdentity, eps, true)
+	return c.registerServiceEndpointsBySession(s, constants.ServiceNameKeystone, constants.ServiceTypeIdentity, eps, enableSSL)
 }
 
 func doCreateExternalService(s *mcclient.ClientSession) error {
