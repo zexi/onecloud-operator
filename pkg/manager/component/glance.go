@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 
 	"yunion.io/x/jsonutils"
 	"yunion.io/x/log"
@@ -351,6 +352,32 @@ func (m *glanceManager) getPodLabels() map[string]string {
 	return map[string]string{
 		constants.OnecloudHostDeployerLabelKey: "",
 	}
+}
+
+func labelPodNodes(m ComponentManager, namespace string, podLabels map[string]string, labelKey string, labelValue string) error {
+	ctx := context.Background()
+	podLabelSelector := labels.FormatLabels(podLabels)
+	pods, err := m.kubeCli.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: podLabelSelector,
+	})
+	if err != nil {
+		return yerr.Wrapf(err, "get pods from labels selector: %s", podLabelSelector)
+	}
+	for _, p := range pods.Items {
+		nodeName := p.Spec.NodeName
+		node, err := m.kubeCli.CoreV1().Nodes().Get(ctx, nodeName, metav1.GetOptions{})
+		if err != nil {
+			return yerr.Wrapf(err, "get node from pod %s %s", namespace, p.GetName())
+		}
+		node.Labels[labelKey] = labelValue
+		_, err = m.kubeCli.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
+		if err != nil {
+			return yerr.Wrapf(err, "label node %s with %s=%s", node.GetName(), labelKey, labelValue)
+		} else {
+			log.Infof("label node %s with %s=%s by pod %s/%s", node.GetName(), labelKey, labelValue, p.GetNamespace(), p.GetName())
+		}
+	}
+	return nil
 }
 
 func (m *glanceManager) getDeploymentStatus(oc *v1alpha1.OnecloudCluster, zone string) *v1alpha1.DeploymentStatus {
