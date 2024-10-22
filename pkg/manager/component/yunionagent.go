@@ -55,7 +55,7 @@ func (m *yunionagentManager) getComponentType() v1alpha1.ComponentType {
 }
 
 func (m *yunionagentManager) Sync(oc *v1alpha1.OnecloudCluster) error {
-	if !IsEnterpriseEdition(oc) {
+	if !IsEEOrESEEdition(oc) {
 		return nil
 	}
 	return syncComponent(m, oc, oc.Spec.Yunionagent.Disable, "")
