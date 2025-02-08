@@ -766,6 +766,7 @@ type ObjectStoreConfig struct {
 	Endpoint  string `json:"endpoint"`
 	AccessKey string `json:"accessKey"`
 	SecretKey string `json:"secretKey"`
+	Secure    bool   `json:"secure"`
 }
 
 type MonitorStackLokiSpec struct {
