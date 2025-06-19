@@ -155,7 +155,7 @@ const (
 
 	ExtdbComponentType ComponentType = "extdb"
 
-	CloudPhoneComponentType ComponentType = "cloudphone"
+	CloudDesktopComponentType ComponentType = "clouddesktop"
 )
 
 // ComponentPhase is the current state of component
@@ -346,7 +346,7 @@ type OnecloudClusterSpec struct {
 	Cloudmux CloudmuxSpec              `json:"cloudmux"`
 	Extdb    DeploymentServicePortSpec `json:"extdb"`
 
-	CloudPhone DeploymentServicePortSpec `json:"cloud-phone"`
+	CloudDesktop DeploymentServicePortSpec `json:"clouddesktop"`
 }
 
 func (s OnecloudClusterSpec) GetDbEngine(srvSpec TDBEngineType) TDBEngineType {
@@ -1209,7 +1209,7 @@ type GlobalServiceCommonConfig struct {
 	TaskWorkerCount      int `json:"task_worker_count" default:"4"`
 }
 
-type CloudPhoneCommonConfig struct {
+type CloudDesktopCommonConfig struct {
 	S3AccessKey  string `json:"s3_access_key"`
 	S3SecretKey  string `json:"s3_secret_key"`
 	S3Endpoint   string `json:"s3_endpoint"`
@@ -1218,20 +1218,20 @@ type CloudPhoneCommonConfig struct {
 
 	BackupStorageId string `json:"backup_storage_id"`
 
-	HostTcpPortStart int `json:"host_tcp_port_start"`
-	HostTcpPortEnd   int `json:"host_tcp_port_end"`
-	HostUdpPortStart int `json:"host_udp_port_start"`
-	HostUdpPortEnd   int `json:"host_udp_port_end"`
+	HostTcpPortStart int `json:"host_tcp_port_start" default:"20001"`
+	HostTcpPortEnd   int `json:"host_tcp_port_end" default:"24999"`
+	HostUdpPortStart int `json:"host_udp_port_start" default:"20001"`
+	HostUdpPortEnd   int `json:"host_udp_port_end" default:"24999"`
 
 	AdbWhiteListPrefixes []string `json:"adb_white_list_prefixes"`
 
 	EnableCaseInsensitive bool `json:"enable_case_insensitive"`
 }
 
-type CloudPhoneConfig struct {
+type CloudDesktopConfig struct {
 	ServiceDBCommonOptions
 
-	CloudPhoneCommonConfig
+	CloudDesktopCommonConfig
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -1275,5 +1275,5 @@ type OnecloudClusterConfig struct {
 	BastionHost     ServiceDBCommonOptions    `json:"bastionHost"`
 	Extdb           ServiceDBCommonOptions    `json:"extdb"`
 
-	CloudPhone CloudPhoneConfig `json:"cloud-phone"`
+	CloudDesktop CloudDesktopConfig `json:"clouddesktop"`
 }

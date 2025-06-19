@@ -209,7 +209,7 @@ func SetDefaults_OnecloudClusterSpec(obj *OnecloudClusterSpec, isEE bool, isEEOr
 		BastionHostComponentType:     nHP(&obj.BastionHost.DeploymentSpec, useHyperImage),
 		ExtdbComponentType:           nHP(&obj.Extdb.DeploymentSpec, useHyperImage),
 		BillingComponentType:         nHP(&obj.Billing.DeploymentSpec, useHyperImage),
-		CloudPhoneComponentType:      nHP(&obj.CloudPhone.DeploymentSpec, false),
+		CloudDesktopComponentType:    nHP(&obj.CloudDesktop.DeploymentSpec, false),
 	} {
 		SetDefaults_DeploymentSpec(spec.DeploymentSpec, getImage(
 			obj.ImageRepository, spec.Repository,
@@ -483,7 +483,7 @@ func setDefaults_Components_ServicePort(obj *OnecloudClusterSpec) {
 		newSP(&obj.VpcAgent.Service, constants.VpcAgentPort),
 		newSP(&obj.BastionHost.Service, constants.BastionHostPort),
 		newSP(&obj.Extdb.Service, constants.ExtdbPort),
-		newSP(&obj.CloudPhone.Service, constants.CloudPhonePort),
+		newSP(&obj.CloudDesktop.Service, constants.CloudDesktopPort),
 	} {
 		SetDefaults_ServiceSpec(spec.spec, spec.defaultPort)
 	}
@@ -814,7 +814,7 @@ func SetDefaults_OnecloudClusterConfig(obj *OnecloudClusterConfig) {
 		&obj.AutoUpdate:                          {constants.AutoUpdateAdminUser, constants.AutoUpdatePort, constants.AutoUpdateDB, constants.AutoUpdateDBUser},
 		&obj.BastionHost:                         {constants.BastionHostAdminUser, constants.BastionHostPort, constants.BastionHostDB, constants.BastionHostDBUser},
 		&obj.Extdb:                               {constants.ExtdbAdminUser, constants.ExtdbPort, constants.ExtdbDB, constants.ExtdbDBUser},
-		&obj.CloudPhone.ServiceDBCommonOptions:   {constants.CloudPhoneAdminUser, constants.CloudPhonePort, constants.CloudPhoneDB, constants.CloudPhoneDBUser},
+		&obj.CloudDesktop.ServiceDBCommonOptions: {constants.CloudDesktopAdminUser, constants.CloudDesktopPort, constants.CloudDesktopDB, constants.CloudDesktopDBUser},
 	} {
 		if user, ok := registryPorts[tmp.port]; ok {
 			log.Fatalf("port %d has been registered by %s", tmp.port, user)

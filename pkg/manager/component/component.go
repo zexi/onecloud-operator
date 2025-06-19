@@ -1641,8 +1641,8 @@ func (m *ComponentManager) Extdb() manager.Manager {
 	return newExtdbManager(m)
 }
 
-func (m *ComponentManager) CloudPhone() manager.Manager {
-	return newcloudPhoneManager(m)
+func (m *ComponentManager) CloudDesktop() manager.Manager {
+	return newcloudDesktopManager(m)
 }
 
 func setSelfAntiAffnity(deploy *apps.Deployment, component v1alpha1.ComponentType) *apps.Deployment {
