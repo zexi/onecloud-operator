@@ -43,6 +43,7 @@ import (
 
 	"yunion.io/x/onecloud-operator/pkg/apis/constants"
 	"yunion.io/x/onecloud-operator/pkg/apis/onecloud/v1alpha1"
+	"yunion.io/x/onecloud-operator/pkg/util/dbutil"
 	"yunion.io/x/onecloud-operator/pkg/util/k8sutil"
 	"yunion.io/x/onecloud-operator/pkg/util/onecloud"
 )
@@ -275,6 +276,8 @@ type ComponentManager interface {
 	Monitor() PhaseControl
 	Cloudproxy() PhaseControl
 	EChartsSSR() PhaseControl
+	Apigateway() PhaseControl
+	LLM() PhaseControl
 }
 
 func (w *OnecloudControl) Components(oc *v1alpha1.OnecloudCluster) ComponentManager {
@@ -380,6 +383,22 @@ func (c *realComponent) EChartsSSR() PhaseControl {
 	return &echartsSSRComponent{newBaseComponent(c)}
 }
 
+func (c *realComponent) Apigateway() PhaseControl {
+	return NewApigatewayPhaseControl(c)
+}
+
+func NewApigatewayPhaseControl(c ComponentManager) PhaseControl {
+	return &apigatewayComponent{newBaseComponent(c)}
+}
+
+func (c *realComponent) LLM() PhaseControl {
+	return NewLLMPhaseControl(c)
+}
+
+func NewLLMPhaseControl(c ComponentManager) PhaseControl {
+	return &llmComponent{newBaseComponent(c)}
+}
+
 type baseComponent struct {
 	manager ComponentManager
 }
@@ -429,7 +448,8 @@ func newInternalEndpoint(host string, port int, path string) *endpoint {
 }
 
 func (e endpoint) GetProtocolUrl(proto string) string {
-	url := fmt.Sprintf("%s://%s:%d", proto, e.Host, e.Port)
+	formattedHost := dbutil.FormatHost(e.Host)
+	url := fmt.Sprintf("%s://%s:%d", proto, formattedHost, e.Port)
 	if e.Path != "" {
 		url = fmt.Sprintf("%s/%s", url, e.Path)
 	}
@@ -583,7 +603,8 @@ func (c keystoneComponent) getWebAccessUrl(oc *v1alpha1.OnecloudCluster) (string
 	if oc.Spec.LoadBalancerEndpoint == "" {
 		return "", errors.Errorf("cluster %s LoadBalancerEndpoint is empty", oc.GetName())
 	}
-	return fmt.Sprintf("https://%s", oc.Spec.LoadBalancerEndpoint), nil
+	formattedHost := dbutil.FormatHost(oc.Spec.LoadBalancerEndpoint)
+	return fmt.Sprintf("https://%s", formattedHost), nil
 }
 
 func (c keystoneComponent) getCommonConfig(oc *v1alpha1.OnecloudCluster) (map[string]string, error) {
@@ -752,6 +773,9 @@ func doCreateEtcdServiceEndpoint(oc *v1alpha1.OnecloudCluster, s *mcclient.Clien
 	}
 	if pubHost == "" {
 		pubHost = intHost
+	} else {
+		// Format IPv6 addresses properly for use in URLs
+		pubHost = dbutil.FormatHost(pubHost)
 	}
 	eps := []*endpoint{
 		newInternalEndpoint(intHost, constants.EtcdClientPort, ""),
@@ -1641,4 +1665,26 @@ func (c *echartsSSRComponent) Setup() error {
 		url := fmt.Sprintf("http://%s-%s.%s.svc:%d", oc.GetName(), v1alpha1.EChartsSSRComponentType, oc.GetNamespace(), constants.EChartsSSRPort)
 		return onecloud.RegisterServiceEndpointByInterfaces(s, oc.Spec.Region, constants.ServiceNameEChartsSSR, constants.ServiceTypeEChartsSSR, url, "", []string{constants.EndpointTypeInternal})
 	})
+}
+
+type apigatewayComponent struct {
+	*baseComponent
+}
+
+func (c *apigatewayComponent) Setup() error {
+	return c.RegisterCloudServiceEndpoint(
+		v1alpha1.APIGatewayComponentType,
+		constants.ServiceNameAPIGateway, constants.ServiceTypeAPIGateway,
+		c.GetCluster().Spec.APIGateway.APIService.NodePort, "", true)
+}
+
+type llmComponent struct {
+	*baseComponent
+}
+
+func (c *llmComponent) Setup() error {
+	return c.RegisterCloudServiceEndpoint(
+		v1alpha1.LLMComponentType,
+		constants.ServiceNameLLM, constants.ServiceTypeLLM,
+		c.GetCluster().Spec.LLM.Service.NodePort, "", true)
 }

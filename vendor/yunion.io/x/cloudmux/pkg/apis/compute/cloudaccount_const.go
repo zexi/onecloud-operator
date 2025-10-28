@@ -49,11 +49,16 @@ const (
 	CLOUD_PROVIDER_SANGFOR        = "SangFor"
 	CLOUD_PROVIDER_ZETTAKIT       = "ZettaKit"
 	CLOUD_PROVIDER_UIS            = "UIS"
+	CLOUD_PROVIDER_CAS            = "CAS"
+	CLOUD_PROVIDER_CNWARE         = "CNware"
+	CLOUD_PROVIDER_OCEANBASE      = "OceanBase"
 
 	CLOUD_PROVIDER_GENERICS3 = "S3"
 	CLOUD_PROVIDER_CEPH      = "Ceph"
 	CLOUD_PROVIDER_CEPHFS    = "CephFS"
 	CLOUD_PROVIDER_XSKY      = "Xsky"
+
+	CLOUD_PROVIDER_CLOUDFLARE = "Cloudflare"
 
 	CLOUD_PROVIDER_HEALTH_NORMAL        = "normal"        // 远端处于健康状态
 	CLOUD_PROVIDER_HEALTH_INSUFFICIENT  = "insufficient"  // 不足按需资源余额
@@ -61,6 +66,7 @@ const (
 	CLOUD_PROVIDER_HEALTH_ARREARS       = "arrears"       // 远端处于欠费状态
 	CLOUD_PROVIDER_HEALTH_UNKNOWN       = "unknown"       // 未知状态，查询失败
 	CLOUD_PROVIDER_HEALTH_NO_PERMISSION = "no permission" // 没有权限获取账单信息
+	CLOUD_PROVIDER_HEALTH_PENDING       = "pending"       // 待激活账户
 )
 
 const (

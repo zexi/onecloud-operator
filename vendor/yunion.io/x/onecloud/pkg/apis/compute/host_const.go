@@ -59,6 +59,8 @@ const (
 	HOST_TYPE_SANGFOR        = compute.HOST_TYPE_SANGFOR
 	HOST_TYPE_ZETTAKIT       = compute.HOST_TYPE_ZETTAKIT
 	HOST_TYPE_UIS            = compute.HOST_TYPE_UIS
+	HOST_TYPE_CAS            = compute.HOST_TYPE_CAS
+	HOST_TYPE_CNWARE         = compute.HOST_TYPE_CNWARE
 
 	HOST_TYPE_DEFAULT = HOST_TYPE_HYPERVISOR
 
@@ -122,6 +124,11 @@ const (
 	HostResourceTypeDedicated      = "dedicated"
 )
 
+const (
+	HOST_METADATA_CPU_USAGE_PERCENT = "cpu_usage_percent"
+	HOST_METADATA_MEMORY_USED_MB    = "memory_used_mb"
+)
+
 var HOST_TYPES = []string{
 	HOST_TYPE_BAREMETAL,
 	HOST_TYPE_HYPERVISOR,
@@ -159,6 +166,7 @@ var HOST_TYPES = []string{
 	HOST_TYPE_SANGFOR,
 	HOST_TYPE_ZETTAKIT,
 	HOST_TYPE_UIS,
+	HOST_TYPE_CNWARE,
 }
 
 var ALL_NIC_TYPES = []compute.TNicType{NIC_TYPE_IPMI, NIC_TYPE_ADMIN, NIC_TYPE_NORMAL}

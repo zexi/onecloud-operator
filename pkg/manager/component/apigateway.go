@@ -47,7 +47,7 @@ func (m *apiGatewayManager) GetComponentType() v1alpha1.ComponentType {
 }
 
 func (m *apiGatewayManager) IsDisabled(oc *v1alpha1.OnecloudCluster) bool {
-	return oc.Spec.APIGateway.Disable
+	return oc.Spec.APIGateway.Disable || !isInProductVersion(m, oc)
 }
 
 func (m *apiGatewayManager) GetServiceName() string {
@@ -68,7 +68,7 @@ func (m *apiGatewayManager) getCloudUser(cfg *v1alpha1.OnecloudClusterConfig) *v
 }
 
 func (m *apiGatewayManager) getPhaseControl(man controller.ComponentManager, zone string) controller.PhaseControl {
-	return component.NewApiGateway().GetPhaseControl(man)
+	return man.Apigateway()
 }
 
 func (m *apiGatewayManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1alpha1.OnecloudClusterConfig, zone string) (*corev1.ConfigMap, bool, error) {

@@ -54,7 +54,7 @@ const (
 
 	DefaultOvnVersion   = "2.12.4"
 	DefaultOvnImageName = "openvswitch"
-	DefaultOvnImageTag  = DefaultOvnVersion + "-2"
+	DefaultOvnImageTag  = DefaultOvnVersion + "-4"
 
 	DefaultSdnAgentImageName = "sdnagent"
 
@@ -74,7 +74,7 @@ const (
 	DefaultVictoriaMetricsImageVersion = "v1.95.1"
 
 	DefaultTelegrafImageName     = "telegraf"
-	DefaultTelegrafImageTag      = "release-1.19.2-9"
+	DefaultTelegrafImageTag      = "release-1.19.2-10"
 	DefaultTelegrafInitImageName = "telegraf-init"
 	DefaultTelegrafInitImageTag  = "release-1.19.2-0"
 	DefaultTelegrafRaidImageName = "telegraf-raid-plugin"
@@ -99,7 +99,13 @@ func SetDefaults_OnecloudCluster(obj *OnecloudCluster) {
 	defer clusterDefaultMutex.Unlock()
 
 	if _, ok := obj.GetLabels()[constants.InstanceLabelKey]; !ok {
-		obj.SetLabels(map[string]string{constants.InstanceLabelKey: fmt.Sprintf("onecloud-cluster-%s", rand.String(4))})
+		// 获取现有标签，避免覆盖
+		existingLabels := obj.GetLabels()
+		if existingLabels == nil {
+			existingLabels = make(map[string]string)
+		}
+		existingLabels[constants.InstanceLabelKey] = fmt.Sprintf("onecloud-cluster-%s", rand.String(4))
+		obj.SetLabels(existingLabels)
 	}
 
 	SetDefaults_OnecloudClusterSpec(&obj.Spec, IsEnterpriseEdition(obj), IsEEOrESEEdition(obj))
@@ -210,6 +216,7 @@ func SetDefaults_OnecloudClusterSpec(obj *OnecloudClusterSpec, isEE bool, isEEOr
 		ExtdbComponentType:           nHP(&obj.Extdb.DeploymentSpec, useHyperImage),
 		BillingComponentType:         nHP(&obj.Billing.DeploymentSpec, useHyperImage),
 		CloudDesktopComponentType:    nHP(&obj.CloudDesktop.DeploymentSpec, false),
+		LLMComponentType:             nHP(&obj.LLM.DeploymentSpec, useHyperImage),
 	} {
 		SetDefaults_DeploymentSpec(spec.DeploymentSpec, getImage(
 			obj.ImageRepository, spec.Repository,
@@ -218,6 +225,8 @@ func SetDefaults_OnecloudClusterSpec(obj *OnecloudClusterSpec, isEE bool, isEEOr
 			spec.Supported, isEE,
 		))
 	}
+	// disable the apimap service defaultly
+	obj.APIMap.Disable = true
 
 	// CE or EE parts
 	for cType, spec := range map[ComponentType]*hyperImagePair{
@@ -484,6 +493,7 @@ func setDefaults_Components_ServicePort(obj *OnecloudClusterSpec) {
 		newSP(&obj.BastionHost.Service, constants.BastionHostPort),
 		newSP(&obj.Extdb.Service, constants.ExtdbPort),
 		newSP(&obj.CloudDesktop.Service, constants.CloudDesktopPort),
+		newSP(&obj.LLM.Service, constants.LLMPort),
 	} {
 		SetDefaults_ServiceSpec(spec.spec, spec.defaultPort)
 	}
@@ -815,6 +825,7 @@ func SetDefaults_OnecloudClusterConfig(obj *OnecloudClusterConfig) {
 		&obj.BastionHost:                         {constants.BastionHostAdminUser, constants.BastionHostPort, constants.BastionHostDB, constants.BastionHostDBUser},
 		&obj.Extdb:                               {constants.ExtdbAdminUser, constants.ExtdbPort, constants.ExtdbDB, constants.ExtdbDBUser},
 		&obj.CloudDesktop.ServiceDBCommonOptions: {constants.CloudDesktopAdminUser, constants.CloudDesktopPort, constants.CloudDesktopDB, constants.CloudDesktopDBUser},
+		&obj.LLM:                                 {constants.LLMAdminUser, constants.LLMPort, constants.LLMDB, constants.LLMDBUser},
 	} {
 		if user, ok := registryPorts[tmp.port]; ok {
 			log.Fatalf("port %d has been registered by %s", tmp.port, user)

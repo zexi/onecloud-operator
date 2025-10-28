@@ -82,6 +82,8 @@ const (
 	HYPERVISOR_SANGFOR        = "sangfor"
 	HYPERVISOR_ZETTAKIT       = "zettakit"
 	HYPERVISOR_UIS            = "uis"
+	HYPERVISOR_CAS            = "cas"
+	HYPERVISOR_CNWARE         = "cnware"
 )
 
 const (

@@ -156,6 +156,21 @@ func EnsureDisableService(s *mcclient.ClientSession, srvName string) error {
 	if !exist {
 		return nil
 	}
+	// service exists, try to disable endpoints
+	endpoints, err := GetEndpointsByService(s, srvName)
+	if err != nil {
+		return errors.Wrap(err, "GetEndpointsByService")
+	}
+	for _, ep := range endpoints {
+		enabled, _ := ep.Bool("enabled")
+		if !enabled {
+			continue
+		}
+		id, _ := ep.GetString("id")
+		if err := DisableEndpoint(s, id); err != nil {
+			return errors.Wrap(err, "DisableEndpoint")
+		}
+	}
 	// service exists, try to disable service
 	enabled, err := srv.Bool("enabled")
 	if err != nil {
@@ -175,9 +190,43 @@ func EnsureDisableService(s *mcclient.ClientSession, srvName string) error {
 }
 
 func EnsureServiceCertificate(s *mcclient.ClientSession, certName string, certDetails *jsonutils.JSONDict) (jsonutils.JSONObject, error) {
-	return EnsureResource(s, &identity.ServiceCertificatesV3, certName, func() (jsonutils.JSONObject, error) {
-		return CreateServiceCertificate(s, certName, certDetails)
-	})
+	obj, exists, err := IsResourceExists(s, &identity.ServiceCertificatesV3, certName)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists && certDetails != nil {
+		// Check if certificate content matches
+		existingCert, _ := obj.GetString("certificate")
+		existingKey, _ := obj.GetString("private_key")
+		existingCaCert, _ := obj.GetString("ca_certificate")
+		existingCert = strings.TrimSpace(existingCert)
+		existingKey = strings.TrimSpace(existingKey)
+		existingCaCert = strings.TrimSpace(existingCaCert)
+
+		newCert, _ := certDetails.GetString("certificate")
+		newKey, _ := certDetails.GetString("private_key")
+		newCaCert, _ := certDetails.GetString("ca_certificate")
+		newCert = strings.TrimSpace(newCert)
+		newKey = strings.TrimSpace(newKey)
+		newCaCert = strings.TrimSpace(newCaCert)
+
+		// If certificate content differs, update it
+		if existingCert != newCert || existingKey != newKey || existingCaCert != newCaCert {
+			log.Infof("Certificate content differs, updating service certificate %s", certName)
+			if err := DeleteServiceEndpoints(s, constants.ServiceNameEtcd); err != nil {
+				return nil, err
+			}
+			if err := DeleteResource(s, &identity.ServiceCertificatesV3, constants.ServiceCertEtcdName); err != nil {
+				return nil, err
+			}
+			return CreateServiceCertificate(s, certName, certDetails)
+		}
+
+		return obj, nil
+	}
+
+	return CreateServiceCertificate(s, certName, certDetails)
 }
 
 func CreateServiceCertificate(s *mcclient.ClientSession, certName string, certDetails *jsonutils.JSONDict) (jsonutils.JSONObject, error) {
@@ -396,6 +445,7 @@ func GetEndpointsByService(s *mcclient.ClientSession, serviceName string) ([]jso
 	svcId, _ := obj.GetString("id")
 	searchParams := jsonutils.NewDict()
 	searchParams.Add(jsonutils.NewString(svcId), "service_id")
+	searchParams.Add(jsonutils.NewInt(0), "limit")
 	ret, err := identity.EndpointsV3.List(s, searchParams)
 	if err != nil {
 		return nil, err

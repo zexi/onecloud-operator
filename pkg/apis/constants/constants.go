@@ -190,7 +190,7 @@ const (
 	MonitorAdminProject = SysAdminProject
 	MonitorPort         = 30093
 	MonitorDB           = "monitor"
-	MonitorDBUser       = "monitor"
+	MonitorDBUser       = "yunionmonitor"
 
 	AnsibleServerAdminUser    = "ansibleadmin"
 	AnsibleServerAdminProject = SysAdminProject
@@ -450,6 +450,14 @@ const (
 	CloudDesktopPort         = 30993
 	CloudDesktopDB           = "clouddesktop"
 	CloudDesktopDBUser       = "clouddesktop"
+
+	ServiceNameLLM  = "llm"
+	ServiceTypeLLM  = "llm"
+	LLMPort         = 31512
+	LLMAdminUser    = "llmadmin"
+	LLMAdminProject = SysAdminProject
+	LLMDB           = "llm"
+	LLMDBUser       = "llm"
 )
 
 var (

@@ -156,6 +156,8 @@ const (
 	ExtdbComponentType ComponentType = "extdb"
 
 	CloudDesktopComponentType ComponentType = "clouddesktop"
+	// LLMComponentType is large language model service based on pod & container
+	LLMComponentType ComponentType = "llm"
 )
 
 // ComponentPhase is the current state of component
@@ -216,6 +218,8 @@ type OnecloudClusterSpec struct {
 	EnableCloudNet bool `json:"enableCloudNet"`
 	// EnableS3Gateway
 	EnableS3Gateway bool `json:"enableS3Gateway"`
+	// IPv6Cluster enables IPv6 support for cluster networking
+	IPv6Cluster bool `json:"ipv6Cluster"`
 	// ProductVersion defines which product version used
 	ProductVersion ProductVersion `json:"productVersion"`
 	// UseHyperImage uses the cloudpods packed image to run components
@@ -347,6 +351,8 @@ type OnecloudClusterSpec struct {
 	Extdb    DeploymentServicePortSpec `json:"extdb"`
 
 	CloudDesktop DeploymentServicePortSpec `json:"clouddesktop"`
+	// LLM holds configuration for large language model service
+	LLM DeploymentServicePortSpec `json:"llm"`
 }
 
 func (s OnecloudClusterSpec) GetDbEngine(srvSpec TDBEngineType) TDBEngineType {
@@ -403,6 +409,7 @@ type OnecloudClusterStatus struct {
 	BastionHost     DeploymentStatus     `json:"bastionHost,omitempty"`
 	Extdb           DeploymentStatus     `json:"extdb,omitempty"`
 	CloudPhone      DeploymentStatus     `json:"cloudPhone,omitempty"`
+	LLM             DeploymentStatus     `json:"llm,omitempty"`
 }
 
 type EtcdClusterSpec struct {
@@ -1275,5 +1282,6 @@ type OnecloudClusterConfig struct {
 	BastionHost     ServiceDBCommonOptions    `json:"bastionHost"`
 	Extdb           ServiceDBCommonOptions    `json:"extdb"`
 
-	CloudDesktop CloudDesktopConfig `json:"clouddesktop"`
+	CloudDesktop CloudDesktopConfig     `json:"clouddesktop"`
+	LLM          ServiceDBCommonOptions `json:"llm"`
 }

@@ -28,6 +28,7 @@ import (
 	"yunion.io/x/onecloud-operator/pkg/controller"
 	"yunion.io/x/onecloud-operator/pkg/manager"
 	"yunion.io/x/onecloud-operator/pkg/service-init/component"
+	"yunion.io/x/onecloud-operator/pkg/util/dbutil"
 	"yunion.io/x/onecloud-operator/pkg/util/option"
 )
 
@@ -102,6 +103,7 @@ func (m *regionDNSManager) getProductVersions() []v1alpha1.ProductVersion {
 		v1alpha1.ProductVersionFullStack,
 		v1alpha1.ProductVersionEdge,
 		v1alpha1.ProductVersionCMP,
+		v1alpha1.ProductVersionLightEdge,
 	}
 }
 
@@ -110,7 +112,7 @@ func (m *regionDNSManager) GetComponentType() v1alpha1.ComponentType {
 }
 
 func (m *regionDNSManager) IsDisabled(oc *v1alpha1.OnecloudCluster) bool {
-	return oc.Spec.RegionDNS.Disable
+	return oc.Spec.RegionDNS.Disable || !isInProductVersion(m, oc)
 }
 
 func (m *regionDNSManager) Sync(oc *v1alpha1.OnecloudCluster) error {
@@ -147,7 +149,7 @@ func (m *regionDNSManager) getConfigMap(oc *v1alpha1.OnecloudCluster, cfg *v1alp
 	config := RegionDNSConfig{
 		DBUser:     regionDB.Username,
 		DBPassword: regionDB.Password,
-		DBHost:     db.Host,
+		DBHost:     dbutil.FormatHost(db.Host),
 		DBPort:     db.Port,
 		DBName:     regionDB.Database,
 

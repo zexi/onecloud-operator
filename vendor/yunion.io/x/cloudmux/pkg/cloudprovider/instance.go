@@ -188,13 +188,14 @@ type SManagedVMChangeConfig struct {
 }
 
 type SManagedVMRebuildRootConfig struct {
-	Account   string
-	Password  string
-	ImageId   string
-	PublicKey string
-	SysSizeGB int
-	OsType    string
-	UserData  string
+	Account     string
+	Password    string
+	ImageId     string
+	KeypairName string
+	PublicKey   string
+	SysSizeGB   int
+	OsType      string
+	UserData    string
 }
 
 func (vmConfig *SManagedVMCreateConfig) GetConfig(config *jsonutils.JSONDict) error {
@@ -214,7 +215,7 @@ func (vmConfig *SManagedVMCreateConfig) GetConfig(config *jsonutils.JSONDict) er
 		vmConfig.PublicKey = publicKey
 	}
 	//目前所写的userData格式仅支持Linux
-	if strings.ToLower(vmConfig.OsType) == strings.ToLower(osprofile.OS_TYPE_LINUX) {
+	if strings.EqualFold(vmConfig.OsType, osprofile.OS_TYPE_LINUX) {
 		adminPublicKey, _ := config.GetString("admin_public_key")
 		projectPublicKey, _ := config.GetString("project_public_key")
 		vmConfig.UserData = generateUserData(adminPublicKey, projectPublicKey, vmConfig.UserData)
@@ -272,7 +273,7 @@ func (vmConfig *SManagedVMCreateConfig) GetUserData() (string, error) {
 		}
 		return "", err
 	}
-	if strings.ToLower(vmConfig.OsType) == strings.ToLower(osprofile.OS_TYPE_LINUX) {
+	if strings.EqualFold(vmConfig.OsType, osprofile.OS_TYPE_LINUX) {
 		switch vmConfig.UserDataType {
 		case CLOUD_SHELL:
 			return oUserData.UserDataScriptBase64(), nil

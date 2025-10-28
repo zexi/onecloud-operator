@@ -252,7 +252,7 @@ func (acnt *SCloudaccount) enableAccountOnly(ctx context.Context, userCred mccli
 }
 
 func (acnt *SCloudaccount) PerformEnable(ctx context.Context, userCred mcclient.TokenCredential, query jsonutils.JSONObject, input apis.PerformEnableInput) (jsonutils.JSONObject, error) {
-	if strings.Index(acnt.Status, "delet") >= 0 {
+	if strings.Contains(acnt.Status, "delet") {
 		return nil, httperrors.NewInvalidStatusError("Cannot enable deleting account")
 	}
 	_, err := acnt.enableAccountOnly(ctx, userCred, query, input)
@@ -759,7 +759,12 @@ func (acnt *SCloudaccount) PerformTestConnectivity(ctx context.Context, userCred
 	return nil, nil
 }
 
-func (acnt *SCloudaccount) PerformUpdateCredential(ctx context.Context, userCred mcclient.TokenCredential, query jsonutils.JSONObject, data jsonutils.JSONObject) (jsonutils.JSONObject, error) {
+func (acnt *SCloudaccount) PerformUpdateCredential(
+	ctx context.Context,
+	userCred mcclient.TokenCredential,
+	query jsonutils.JSONObject,
+	input cloudprovider.SCloudaccountCredential,
+) (jsonutils.JSONObject, error) {
 	if !acnt.GetEnabled() {
 		return nil, httperrors.NewInvalidStatusError("Account disabled")
 	}
@@ -767,12 +772,6 @@ func (acnt *SCloudaccount) PerformUpdateCredential(ctx context.Context, userCred
 	providerDriver, err := acnt.GetProviderFactory()
 	if err != nil {
 		return nil, httperrors.NewBadRequestError("failed to found provider factory error: %v", err)
-	}
-
-	input := cloudprovider.SCloudaccountCredential{}
-	err = data.Unmarshal(&input)
-	if err != nil {
-		return nil, httperrors.NewInputParameterError("failed to unmarshal input params: %v", err)
 	}
 
 	account, err := providerDriver.ValidateUpdateCloudaccountCredential(ctx, input, acnt.Account)
@@ -1108,10 +1107,10 @@ func (acnt *SCloudaccount) getDefaultExternalProject(id string) (*SExternalProje
 		return nil, errors.Wrapf(err, "db.FetchModelObjects")
 	}
 	if len(projects) > 1 {
-		return nil, errors.Wrapf(cloudprovider.ErrDuplicateId, id)
+		return nil, errors.Wrapf(cloudprovider.ErrDuplicateId, "%s", id)
 	}
 	if len(projects) == 0 {
-		return nil, errors.Wrapf(cloudprovider.ErrNotFound, id)
+		return nil, errors.Wrapf(cloudprovider.ErrNotFound, "%s", id)
 	}
 	return &projects[0], nil
 }
@@ -1128,11 +1127,9 @@ func (acnt *SCloudaccount) removeSubAccounts(ctx context.Context, userCred mccli
 		return errors.Wrapf(err, "db.FetchModelObjects")
 	}
 	for i := range providers {
-		log.Debugf("remove cloudprovider %s(%s)", providers[i].Name, providers[i].Id)
-		err = providers[i].RealDelete(ctx, userCred)
-		if err != nil {
-			return errors.Wrapf(err, "RealDelete")
-		}
+		// 禁用云订阅，并设置为未连接状态，避免权限异常删除云订阅
+		providers[i].PerformDisable(ctx, userCred, jsonutils.NewDict(), apis.PerformDisableInput{})
+		providers[i].SetStatus(ctx, userCred, api.CLOUD_PROVIDER_DISCONNECTED, "sync lost")
 	}
 	return nil
 }
@@ -1208,7 +1205,7 @@ func (acnt *SCloudaccount) importSubAccount(ctx context.Context, userCred mcclie
 		}
 		provider.markProviderConnected(ctx, userCred, subAccount.HealthStatus)
 		provider.updateName(ctx, userCred, subAccount.Name, subAccount.Desc)
-		if provider.ExternalId != subAccount.Id {
+		if len(provider.ExternalId) == 0 || provider.ExternalId != subAccount.Id {
 			_, err := db.Update(provider, func() error {
 				provider.ExternalId = subAccount.Id
 				return nil
@@ -1663,8 +1660,8 @@ func migrateCloudprovider(cloudprovider *SCloudprovider) error {
 			}
 		} else {
 			msg := fmt.Sprintf("error azure provider account format %s", cloudprovider.Account)
-			log.Errorf(msg)
-			return fmt.Errorf(msg)
+			log.Errorf("%s", msg)
+			return fmt.Errorf("%s", msg)
 		}
 	}
 

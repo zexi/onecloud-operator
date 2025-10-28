@@ -102,7 +102,12 @@ func getServerAltNames(
 		},
 		IPs: []net.IP{
 			net.ParseIP("127.0.0.1"),
+			net.ParseIP("::1"),
 		},
+	}
+
+	if oc.Spec.LoadBalancerEndpoint != "" {
+		altNames.IPs = append(altNames.IPs, net.ParseIP(oc.Spec.LoadBalancerEndpoint))
 	}
 
 	return altNames, nil
@@ -115,6 +120,10 @@ func getPeerAltNames(oc *v1alpha1.OnecloudCluster, serviceName string, certName 
 			fmt.Sprintf("*.%s-etcd.%s.svc", oc.Name, ns),
 			fmt.Sprintf("*.%s-etcd.%s.svc.cluster.local", oc.Name, ns),
 			constants.Localhost,
+		},
+		IPs: []net.IP{
+			net.ParseIP("127.0.0.1"),
+			net.ParseIP("::1"),
 		},
 	}
 

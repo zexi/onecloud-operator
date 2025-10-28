@@ -15,6 +15,8 @@
 package compute
 
 import (
+	"time"
+
 	"yunion.io/x/jsonutils"
 
 	"yunion.io/x/onecloud/pkg/apis"
@@ -87,6 +89,10 @@ type NetworkConfig struct {
 	// 是否要求分配IPv6地址
 	// required: false
 	RequireIPv6 bool `json:"require_ipv6"`
+
+	// 只分配IPv6地址，禁用IPv4
+	// required: false
+	StrictIPv6 bool `json:"strict_ipv6"`
 
 	// 驱动方式
 	// 若指定镜像的网络驱动方式，此参数会被覆盖
@@ -177,6 +183,10 @@ type DiskConfig struct {
 
 	// 文件系统特性
 	FsFeatures *DiskFsFeatures `json:"fs_features"`
+
+	// 关机后自动重置磁盘
+	// required: false
+	AutoReset bool `json:"auto_reset"`
 
 	// 磁盘存储格式
 	// enum: ["qcow2", "raw", "docker", "iso", "vmdk", "vmdkflatver1", "vmdkflatver2", "vmdkflat", "vmdksparse", "vmdksparsever1", "vmdksparsever2", "vmdksepsparse", "vhd"]
@@ -644,6 +654,8 @@ type ServerCreateInput struct {
 	BillingType string `json:"billing_type"`
 	// swagger:ignore
 	BillingCycle string `json:"billing_cycle"`
+	// 到期释放时间
+	ReleaseAt time.Time `json:"release_at"`
 
 	// swagger:ignore
 	// Deprecated

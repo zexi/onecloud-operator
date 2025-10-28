@@ -20,7 +20,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	"yunion.io/x/onecloud/pkg/ansibleserver/options"
+	"yunion.io/x/onecloud/pkg/cloudevent/options"
 
 	"yunion.io/x/onecloud-operator/pkg/apis/constants"
 	"yunion.io/x/onecloud-operator/pkg/apis/onecloud/v1alpha1"
@@ -49,7 +49,7 @@ func (m *cloudeventManager) GetComponentType() v1alpha1.ComponentType {
 }
 
 func (m *cloudeventManager) IsDisabled(oc *v1alpha1.OnecloudCluster) bool {
-	return oc.Spec.Cloudevent.Disable
+	return oc.Spec.Cloudevent.Disable || !isInProductVersion(m, oc)
 }
 
 func (m *cloudeventManager) GetServiceName() string {
